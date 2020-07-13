@@ -1,8 +1,12 @@
 package com.autohome.frostmourne.monitor.service.core.query;
 
+import java.util.Arrays;
 import java.util.Date;
+import java.util.Map;
 import javax.annotation.Resource;
 
+import au.com.bytecode.opencsv.CSVWriter;
+import com.autohome.frostmourne.core.contract.ProtocolException;
 import com.autohome.frostmourne.monitor.contract.DataNameContract;
 import com.autohome.frostmourne.monitor.contract.DataSourceContract;
 import com.autohome.frostmourne.monitor.contract.ElasticsearchDataResult;
@@ -37,7 +41,7 @@ public class QueryService implements IQueryService {
     @Resource
     private IDataAdminService dataAdminService;
 
-    public ElasticsearchDataResult ElasticsearchQuery(String dataName, Date startTime, Date endTime, String esQuery,
+    public ElasticsearchDataResult elasticsearchQuery(String dataName, Date startTime, Date endTime, String esQuery,
                                                       String scrollId, String sortOrder, Integer intervalInSeconds) {
         if (intervalInSeconds == null || intervalInSeconds == 0) {
             Long timeGap = endTime.getTime() - startTime.getTime();
@@ -48,5 +52,31 @@ public class QueryService implements IQueryService {
         ElasticsearchDataResult elasticsearchDataResult = elasticsearchDataQuery.query(dataNameContract, dataSourceContract,
                 new DateTime(startTime), new DateTime(endTime), esQuery, scrollId, sortOrder, intervalInSeconds);
         return elasticsearchDataResult;
+    }
+
+    @Override
+    public void exportToCsv(CSVWriter csvWriter, String dataName, DateTime startTime, DateTime endTime, String esQuery,
+                            String scrollId, String sortOrder) {
+        DataNameContract dataNameContract = dataAdminService.findDataNameByName(dataName);
+        DataSourceContract dataSourceContract = dataAdminService.findDatasourceById(dataNameContract.getData_source_id());
+        ElasticsearchDataResult elasticsearchDataResult = elasticsearchDataQuery.query(dataNameContract, dataSourceContract,
+                startTime, endTime, esQuery, scrollId, sortOrder, null);
+        String[] heads = elasticsearchDataResult.getFields().toArray(new String[0]);
+        csvWriter.writeNext(heads);
+        while (true) {
+            if (elasticsearchDataResult.getTotal() > 10 * 10000) {
+                throw new ProtocolException(500, "数量总数超过10万,无法下载");
+            }
+            if (elasticsearchDataResult.getLogs().size() == 0) {
+                break;
+            }
+            for (Map<String, Object> log : elasticsearchDataResult.getLogs()) {
+                String[] data = Arrays.stream(heads).map(h -> log.get(h) == null ? null : log.get(h).toString()).toArray(String[]::new);
+                csvWriter.writeNext(data);
+            }
+            scrollId = elasticsearchDataResult.getScrollId();
+            elasticsearchDataResult = elasticsearchDataQuery.query(dataNameContract, dataSourceContract,
+                    startTime, endTime, esQuery, scrollId, sortOrder, null);
+        }
     }
 }

@@ -21,6 +21,10 @@ public class AlertContract {
 
     private String ding_robot_hook;
 
+    private String http_post_url;
+
+    private String wechat_robot_hook;
+
     private List<String> recipients;
 
     public Long getAlarm_id() {
@@ -93,5 +97,21 @@ public class AlertContract {
 
     public void setRecipients(List<String> recipients) {
         this.recipients = recipients;
+    }
+
+    public String getHttp_post_url() {
+        return http_post_url;
+    }
+
+    public void setHttp_post_url(String http_post_url) {
+        this.http_post_url = http_post_url;
+    }
+
+    public String getWechat_robot_hook() {
+        return wechat_robot_hook;
+    }
+
+    public void setWechat_robot_hook(String wechat_robot_hook) {
+        this.wechat_robot_hook = wechat_robot_hook;
     }
 }

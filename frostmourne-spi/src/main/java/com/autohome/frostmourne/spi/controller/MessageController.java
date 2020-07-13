@@ -1,7 +1,6 @@
 package com.autohome.frostmourne.spi.controller;
 
 import java.util.List;
-
 import javax.annotation.Resource;
 
 import com.autohome.frostmourne.core.contract.Protocol;
@@ -22,7 +21,11 @@ public class MessageController {
     private IMessageService messageService;
 
     @RequestMapping(value = "/send", method = RequestMethod.POST)
-    public Protocol<List<MessageResult>> send(@RequestParam(name = "_appId", required = true) String _appId, @RequestBody AlarmMessage alarmMessage) {
+    public Protocol<List<MessageResult>> send(@RequestParam(name = "_appId", required = true) String _appId,
+                                              @RequestBody AlarmMessage alarmMessage) {
+        if (alarmMessage.getRecipients() == null || alarmMessage.getRecipients().size() == 0) {
+            return new Protocol(502, "recipients could not be null or empty when send message");
+        }
         List<MessageResult> messageResultList = messageService.send(alarmMessage);
         return new Protocol<>(messageResultList);
     }

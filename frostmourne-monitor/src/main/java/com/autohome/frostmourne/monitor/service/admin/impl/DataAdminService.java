@@ -45,6 +45,7 @@ public class DataAdminService implements IDataAdminService {
         return DataSourceTransformer.model2Contract(dataSource);
     }
 
+    @Override
     public boolean saveDataSource(String account, DataSourceContract dataSourceContract) {
         DataSource dataSource = new DataSource();
         dataSource.setDatasource_name(dataSourceContract.getDatasource_name());
@@ -52,6 +53,9 @@ public class DataAdminService implements IDataAdminService {
         dataSource.setModifier(account);
         dataSource.setService_address(dataSourceContract.getService_address());
         dataSource.setModify_at(new Date());
+        if (dataSourceContract.getSettings() != null && dataSourceContract.getSettings().size() > 0) {
+            dataSource.setProperties(JacksonUtil.serialize(dataSourceContract.getSettings()));
+        }
         if (dataSourceContract.getId() != null && dataSourceContract.getId() > 0) {
             dataSource.setId(dataSourceContract.getId());
             return dataSourceMapper.updateByPrimaryKeySelective(dataSource) > 0;
@@ -61,6 +65,7 @@ public class DataAdminService implements IDataAdminService {
         return dataSourceMapper.insert(dataSource) > 0;
     }
 
+    @Override
     public boolean removeDataSource(Long id) {
         int datasourceCount = metricMapper.datasourceCount(id);
         if (datasourceCount > 0) {
@@ -69,16 +74,20 @@ public class DataAdminService implements IDataAdminService {
         return this.dataSourceMapper.deleteByPrimaryKey(id) > 0;
     }
 
-    public PagerContract<DataSource> findDatasource(int pageIndex, int pageSize, String datasourceType) {
+    @Override
+    public PagerContract<DataSourceContract> findDatasource(int pageIndex, int pageSize, String datasourceType) {
         Page page = PageHelper.startPage(pageIndex, pageSize);
         List<DataSource> list = this.dataSourceMapper.find(datasourceType);
-        return new PagerContract<>(list, page.getPageSize(), page.getPageNum(), (int) page.getTotal());
+        return new PagerContract<>(list.stream().map(DataSourceTransformer::model2Contract).collect(Collectors.toList()),
+                page.getPageSize(), page.getPageNum(), (int) page.getTotal());
     }
 
+    @Override
     public List<DataSource> findDataSourceByType(String datasourceType) {
         return this.dataSourceMapper.find(datasourceType);
     }
 
+    @Override
     public List<DataOption> dataOptions() {
         List<DataSource> dataSourceList = this.dataSourceMapper.find(null);
         List<DataName> dataNameList = this.dataNameMapper.find(null, null);
@@ -110,6 +119,7 @@ public class DataAdminService implements IDataAdminService {
         return dataOptionList;
     }
 
+    @Override
     public boolean saveDataName(String account, DataNameContract dataNameContract) {
         DataName dataName = new DataName();
         Date now = new Date();
@@ -125,19 +135,25 @@ public class DataAdminService implements IDataAdminService {
             dataName.setId(dataNameContract.getId());
             return this.dataNameMapper.updateByPrimaryKeySelective(dataName) > 0;
         }
+        DataName oldDataName = this.dataNameMapper.findByName(dataNameContract.getData_name());
+        if (oldDataName != null) {
+            throw new ProtocolException(504, "数据名称发生重复");
+        }
         dataName.setCreator(account);
         dataName.setCreate_at(now);
         return this.dataNameMapper.insert(dataName) > 0;
     }
 
+    @Override
     public boolean removeDataName(Long datanameId) {
         int datanameCount = this.metricMapper.datanameCount(datanameId);
-        if(datanameCount > 1) {
+        if (datanameCount > 0) {
             throw new ProtocolException(600, "数据名正在使用无法删除");
         }
         return this.dataNameMapper.deleteByPrimaryKey(datanameId) > 0;
     }
 
+    @Override
     public PagerContract<DataNameContract> findDataName(int pageIndex, int pageSize, String datasourceType, Long datasourceId) {
         Page page = PageHelper.startPage(pageIndex, pageSize);
         List<DataName> list = this.dataNameMapper.find(datasourceType, datasourceId);
@@ -145,17 +161,19 @@ public class DataAdminService implements IDataAdminService {
                 page.getPageSize(), page.getPageNum(), (int) page.getTotal());
     }
 
+    @Override
     public List<DataNameContract> findDataNameByType(String datasourceType) {
         List<DataName> list = this.dataNameMapper.find(datasourceType, null);
         return list.stream().map(DataAdminService::toDataNameContract).collect(Collectors.toList());
     }
 
+    @Override
     public DataNameContract findDataNameByName(String name) {
         DataName dataName = dataNameMapper.findByName(name);
         return DataNameTransformer.model2Contract(dataName);
     }
 
-    public static DataNameContract toDataNameContract(DataName dataName) {
+    static DataNameContract toDataNameContract(DataName dataName) {
         DataNameContract dataNameContract = new DataNameContract();
         dataNameContract.setId(dataName.getId());
         dataNameContract.setData_source_id(dataName.getData_source_id());

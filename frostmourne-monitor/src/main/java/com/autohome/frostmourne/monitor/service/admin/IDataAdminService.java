@@ -6,7 +6,6 @@ import com.autohome.frostmourne.core.contract.PagerContract;
 import com.autohome.frostmourne.monitor.contract.DataNameContract;
 import com.autohome.frostmourne.monitor.contract.DataOption;
 import com.autohome.frostmourne.monitor.contract.DataSourceContract;
-import com.autohome.frostmourne.monitor.dao.mybatis.frostmourne.domain.DataName;
 import com.autohome.frostmourne.monitor.dao.mybatis.frostmourne.domain.DataSource;
 
 public interface IDataAdminService {
@@ -21,7 +20,7 @@ public interface IDataAdminService {
 
     boolean removeDataName(Long datanameId);
 
-    PagerContract<DataSource> findDatasource(int pageIndex, int pageSize, String datasourceType);
+    PagerContract<DataSourceContract> findDatasource(int pageIndex, int pageSize, String datasourceType);
 
     List<DataSource> findDataSourceByType(String datasourceType);
 

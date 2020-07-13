@@ -184,6 +184,7 @@ public class AlarmAdminService implements IAlarmAdminService {
         metricContract.setMetric_type(metric.getMetric_type());
         metricContract.setData_name_id(metric.getData_name_id());
         metricContract.setAlarm_id(alarmId);
+        metricContract.setPost_data(metric.getPost_data());
         metricContract.setProperties(JacksonUtil.deSerialize(metric.getProperties(), new TypeReference<Map<String, Object>>() {
         }));
         if (metric.getData_source_id() != null && metric.getData_source_id() > 0) {
@@ -224,6 +225,8 @@ public class AlarmAdminService implements IAlarmAdminService {
         alertContract.setAllow_sms_from(alert.getAllow_sms_from());
         alertContract.setAllow_sms_to(alert.getAllow_sms_to());
         alertContract.setDing_robot_hook(alert.getDing_robot_hook());
+        alertContract.setHttp_post_url(alert.getHttp_post_url());
+        alertContract.setWechat_robot_hook(alert.getWechat_robot_hook());
         alertContract.setCreate_at(alert.getCreate_at());
 
         List<Recipient> recipientList = this.recipientMapper.findByAlarm(alarmId);
@@ -323,6 +326,8 @@ public class AlarmAdminService implements IAlarmAdminService {
         alert.setCreator(account);
         alert.setCreate_at(new Date());
         alert.setDing_robot_hook(contract.getDing_robot_hook());
+        alert.setHttp_post_url(contract.getHttp_post_url());
+        alert.setWechat_robot_hook(contract.getWechat_robot_hook());
         alertMapper.insert(alert);
 
         for (String recipient : contract.getRecipients()) {
@@ -375,11 +380,13 @@ public class AlarmAdminService implements IAlarmAdminService {
         metric.setCreator(account);
         metric.setRule_id(ruleId);
         metric.setAggregation_type(metricContract.getAggregation_type());
+        metric.setAggregation_field(metricContract.getAggregation_field());
         metric.setData_name(metricContract.getData_name());
         metric.setData_source_id(metricContract.getData_source_id());
         metric.setData_name_id(metricContract.getData_name_id());
         metric.setMetric_type(metricContract.getMetric_type());
         metric.setQuery_string(metricContract.getQuery_string());
+        metric.setPost_data(metricContract.getPost_data());
         metric.setProperties(JacksonUtil.serialize(metricContract.getProperties()));
         metric.setCreate_at(new Date());
         metricMapper.insert(metric);

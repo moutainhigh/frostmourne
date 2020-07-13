@@ -5,9 +5,7 @@ import javax.annotation.Resource;
 
 import com.autohome.frostmourne.monitor.contract.AlarmContract;
 import com.autohome.frostmourne.monitor.contract.enums.ExecuteStatus;
-import com.autohome.frostmourne.monitor.dao.mybatis.frostmourne.mapper.AlarmLogMapper;
 import com.autohome.frostmourne.monitor.service.admin.IAlarmAdminService;
-import com.autohome.frostmourne.monitor.service.admin.IDataAdminService;
 import com.autohome.frostmourne.monitor.service.core.alert.IAlertService;
 import com.autohome.frostmourne.monitor.service.core.metric.IMetric;
 import com.autohome.frostmourne.monitor.service.core.metric.IMetricService;
@@ -30,6 +28,9 @@ public class AlarmService implements IAlarmService {
     @Resource
     private IAlertService alertService;
 
+    @Resource
+    private IGenerateShortLinkService generateShortLinkService;
+
     public AlarmProcessLogger run(String account, Long alarmId, boolean test) {
         AlarmContract alarmContract = this.alarmAdminService.findById(alarmId);
         return run(alarmContract, test);
@@ -49,11 +50,15 @@ public class AlarmService implements IAlarmService {
             dataSourceType = alarmContract.getMetricContract().getData_name();
         }
         IMetric metric = this.metricService.findMetric(dataSourceType, alarmContract.getMetricContract().getMetric_type());
-        AlarmExecutor alarmExecutor = new AlarmExecutor(alarmContract, rule, metric, alertService);
+        AlarmExecutor alarmExecutor = new AlarmExecutor(alarmContract, rule, metric, generateShortLinkService);
         AlarmProcessLogger alarmProcessLogger = alarmExecutor.execute();
         if (!test) {
             updateAlarmLastExeuteInfo(alarmContract.getId(), alarmProcessLogger.getStart().toDate(), alarmProcessLogger.getExecuteStatus());
-            alertService.alert(alarmProcessLogger);
+            if (alarmProcessLogger.getExecuteStatus() == ExecuteStatus.ERROR) {
+                alarmLog(alarmProcessLogger);
+            } else {
+                alertService.alert(alarmProcessLogger);
+            }
         }
 
         return alarmProcessLogger;
@@ -61,6 +66,10 @@ public class AlarmService implements IAlarmService {
 
     private void updateAlarmLastExeuteInfo(Long alarmId, Date executeTime, ExecuteStatus status) {
         alarmAdminService.updateAlarmLastExecuteInfo(alarmId, executeTime, status);
+    }
+
+    private void alarmLog(AlarmProcessLogger alarmProcessLogger) {
+        alertService.alarmLog(alarmProcessLogger);
     }
 
 }

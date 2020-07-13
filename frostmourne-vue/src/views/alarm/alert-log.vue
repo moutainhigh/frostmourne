@@ -10,8 +10,7 @@
           </el-col>
           <el-col :span="8">
             <el-form-item label="执行时间:">
-              <el-date-picker v-model="datePickValue" type="datetimerange" :picker-options="pickerOptions" range-separator="至" start-placeholder="开始日期" end-placeholder="结束日期" align="right" @change="dateChangeHandler" :default-time="['00:00:00', '23:59:59']">
-              </el-date-picker>
+              <el-date-picker v-model="datePickValue" type="datetimerange" :picker-options="pickerOptions" range-separator="至" start-placeholder="开始日期" end-placeholder="结束日期" align="right" :default-time="['00:00:00', '23:59:59']" @change="dateChangeHandler" />
             </el-form-item>
           </el-col>
           <el-col :span="8">
@@ -38,6 +37,8 @@
                 <el-option label="钉钉" value="dingding" />
                 <el-option label="短信" value="sms" />
                 <el-option label="邮件" value="email" />
+                <el-option label="企业微信" value="wechat" />
+                <el-option label="HTTP" value="http_post" />
               </el-select>
             </el-form-item>
           </el-col>
@@ -70,7 +71,7 @@
       <el-table-column prop="alert_type" label="消息类型" align="center" />
       <el-table-column prop="create_at" label="发送时间" align="center">
         <template slot-scope="scope">
-          <span>{{ scope.row.create_at|timeFormat }}</span>
+          <span>{{ scope.row.create_at | timeFormat }}</span>
         </template>
       </el-table-column>
       <el-table-column label="操作" width="210" align="center" fixed="right">
@@ -90,7 +91,7 @@
     </div>
 
     <el-dialog title="消息内容" :visible.sync="dialogVisible" width="35%">
-      <pre style="overflow: auto; word-wrap: break-word" v-text="currentMessage"></pre>
+      <pre style="overflow: auto; word-wrap: break-word" v-text="currentMessage" />
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogVisible = false">关 闭</el-button>
       </div>
@@ -117,47 +118,47 @@ export default {
           onClick(picker) {
             const startMoment = moment().startOf('day')
             const endMoment = moment().endOf('day')
-            picker.$emit('pick', [startMoment.toDate(), endMoment.toDate()]);
+            picker.$emit('pick', [startMoment.toDate(), endMoment.toDate()])
           }
         },
         {
           text: '昨天',
           onClick(picker) {
-            const end = moment().startOf('day').toDate();
-            const start = moment().startOf('day').subtract(1, 'day').toDate();
-            picker.$emit('pick', [start, end]);
+            const end = moment().startOf('day').toDate()
+            const start = moment().startOf('day').subtract(1, 'day').toDate()
+            picker.$emit('pick', [start, end])
           }
         },
         {
           text: '前天',
           onClick(picker) {
-            const end = moment().startOf('day').subtract(1, 'day').toDate();
-            const start = moment().startOf('day').subtract(2, 'day').toDate();
-            picker.$emit('pick', [start, end]);
+            const end = moment().startOf('day').subtract(1, 'day').toDate()
+            const start = moment().startOf('day').subtract(2, 'day').toDate()
+            picker.$emit('pick', [start, end])
           }
         },
         {
           text: '最近三天',
           onClick(picker) {
-            const end = moment().endOf('day').toDate();
-            const start = moment().startOf('day').subtract(3, 'day').toDate();
-            picker.$emit('pick', [start, end]);
+            const end = moment().endOf('day').toDate()
+            const start = moment().startOf('day').subtract(3, 'day').toDate()
+            picker.$emit('pick', [start, end])
           }
         },
         {
           text: '最近一周',
           onClick(picker) {
-            const end = moment().endOf('day').toDate();
-            const start = moment().startOf('day').subtract(7, 'day').toDate();
-            picker.$emit('pick', [start, end]);
+            const end = moment().endOf('day').toDate()
+            const start = moment().startOf('day').subtract(7, 'day').toDate()
+            picker.$emit('pick', [start, end])
           }
         },
         {
           text: '最近一月',
           onClick(picker) {
-            const end = moment().endOf('day').toDate();
-            const start = moment().startOf('day').subtract(30, 'day').toDate();
-            picker.$emit('pick', [start, end]);
+            const end = moment().endOf('day').toDate()
+            const start = moment().startOf('day').subtract(30, 'day').toDate()
+            picker.$emit('pick', [start, end])
           }
         }]
       },
@@ -225,10 +226,9 @@ export default {
     showMessage(row) {
       this.currentMessage = row.content
       this.dialogVisible = true
-      /*this.$alert('<pre>' + row.content + '</pre>', '消息内容',{
+      /* this.$alert('<pre>' + row.content + '</pre>', '消息内容',{
           dangerouslyUseHTMLString: true
         })*/
-
     }
   }
 }

@@ -10,8 +10,7 @@
           </el-col>
           <el-col :span="8">
             <el-form-item label="执行时间:">
-              <el-date-picker v-model="datePickValue" type="datetimerange" :picker-options="pickerOptions" range-separator="至" start-placeholder="开始日期" end-placeholder="结束日期" align="right" @change="dateChangeHandler" :default-time="['00:00:00', '23:59:59']">
-              </el-date-picker>
+              <el-date-picker v-model="datePickValue" type="datetimerange" :picker-options="pickerOptions" range-separator="至" start-placeholder="开始日期" end-placeholder="结束日期" align="right" :default-time="['00:00:00', '23:59:59']" @change="dateChangeHandler" />
             </el-form-item>
           </el-col>
           <el-col :span="8">
@@ -83,59 +82,59 @@ import moment from 'moment'
 
 export default {
   filters: {
-    timeFormat(value) {
+    timeFormat (value) {
       return value ? formatJsonDate(value, 'yyyy-MM-dd hh:mm:ss') : null
     }
   },
-  data() {
+  data () {
     return {
       pickerOptions: {
         shortcuts: [{
           text: '今天',
-          onClick(picker) {
+          onClick (picker) {
             const startMoment = moment().startOf('day')
             const endMoment = moment().endOf('day')
-            picker.$emit('pick', [startMoment.toDate(), endMoment.toDate()]);
+            picker.$emit('pick', [startMoment.toDate(), endMoment.toDate()])
           }
         },
         {
           text: '昨天',
-          onClick(picker) {
-            const end = moment().startOf('day').toDate();
-            const start = moment().startOf('day').subtract(1, 'day').toDate();
-            picker.$emit('pick', [start, end]);
+          onClick (picker) {
+            const end = moment().startOf('day').toDate()
+            const start = moment().startOf('day').subtract(1, 'day').toDate()
+            picker.$emit('pick', [start, end])
           }
         },
         {
           text: '前天',
-          onClick(picker) {
-            const end = moment().startOf('day').subtract(1, 'day').toDate();
-            const start = moment().startOf('day').subtract(2, 'day').toDate();
-            picker.$emit('pick', [start, end]);
+          onClick (picker) {
+            const end = moment().startOf('day').subtract(1, 'day').toDate()
+            const start = moment().startOf('day').subtract(2, 'day').toDate()
+            picker.$emit('pick', [start, end])
           }
         },
         {
           text: '最近三天',
-          onClick(picker) {
-            const end = moment().endOf('day').toDate();
-            const start = moment().startOf('day').subtract(3, 'day').toDate();
-            picker.$emit('pick', [start, end]);
+          onClick (picker) {
+            const end = moment().endOf('day').toDate()
+            const start = moment().startOf('day').subtract(3, 'day').toDate()
+            picker.$emit('pick', [start, end])
           }
         },
         {
           text: '最近一周',
-          onClick(picker) {
-            const end = moment().endOf('day').toDate();
-            const start = moment().startOf('day').subtract(7, 'day').toDate();
-            picker.$emit('pick', [start, end]);
+          onClick (picker) {
+            const end = moment().endOf('day').toDate()
+            const start = moment().startOf('day').subtract(7, 'day').toDate()
+            picker.$emit('pick', [start, end])
           }
         },
         {
           text: '最近一月',
-          onClick(picker) {
-            const end = moment().endOf('day').toDate();
-            const start = moment().startOf('day').subtract(30, 'day').toDate();
-            picker.$emit('pick', [start, end]);
+          onClick (picker) {
+            const end = moment().endOf('day').toDate()
+            const start = moment().startOf('day').subtract(30, 'day').toDate()
+            picker.$emit('pick', [start, end])
           }
         }]
       },
@@ -154,7 +153,7 @@ export default {
       }
     }
   },
-  created() {
+  created () {
     const startMoment = moment().startOf('day')
     const endMoment = moment().endOf('day')
     this.datePickValue[0] = startMoment.toDate()
@@ -164,26 +163,26 @@ export default {
     this.fetchData()
   },
   methods: {
-    onSubmit() {
+    onSubmit () {
       this.fetchData()
     },
-    onStatusChange() {
+    onStatusChange () {
       this.form.pageIndex = 1
       this.fetchData()
     },
-    onPrevClick() {
+    onPrevClick () {
       this.form.pageIndex--
       this.fetchData()
     },
-    onNextClick() {
+    onNextClick () {
       this.form.pageIndex++
       this.fetchData()
     },
-    onCurrentChange(curr) {
+    onCurrentChange (curr) {
       this.form.pageIndex = curr
       this.fetchData()
     },
-    fetchData() {
+    fetchData () {
       this.listLoading = true
       logApi.findAlarmLog(this.form)
         .then(response => {
@@ -192,11 +191,11 @@ export default {
           this.listLoading = false
         })
     },
-    dateChangeHandler(value) {
+    dateChangeHandler (value) {
       this.form.startTime = value[0]
       this.form.endTime = value[1]
     },
-    showMessage(row) {
+    showMessage (row) {
       this.$alert('<pre style="overflow: auto">' + row.message + '</pre>', '消息内容', {
         dangerouslyUseHTMLString: true
       })

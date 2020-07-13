@@ -6,15 +6,26 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.google.common.base.Splitter;
 import org.apache.http.HttpHost;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.Response;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
 import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.client.core.CountRequest;
+import org.elasticsearch.client.core.CountResponse;
 import org.elasticsearch.client.sniff.Sniffer;
+import org.elasticsearch.common.Strings;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,14 +46,32 @@ public class EsRestClientContainer {
 
     private String name;
 
-    public EsRestClientContainer(String esHostList, boolean sniff) {
+    private Map<String, String> settings;
+
+    public EsRestClientContainer(String esHostList, boolean sniff, Map<String, String> settings) {
         esHosts = Splitter.on(",").splitToList(esHostList);
         this.sniff = sniff;
+        this.settings = settings;
     }
 
     public void init() {
         RestClientBuilder restClientBuilder = RestClient.builder(parseHttpHost(esHosts)
                 .toArray(new HttpHost[0]));
+
+        if (this.settings != null && this.settings.size() > 0 &&
+                !Strings.isNullOrEmpty(this.settings.get("username"))
+                && !Strings.isNullOrEmpty(this.settings.get("password"))) {
+            String userName = this.settings.get("username");
+            String password = this.settings.get("password");
+            final CredentialsProvider credentialsProvider =
+                    new BasicCredentialsProvider();
+            credentialsProvider.setCredentials(AuthScope.ANY,
+                    new UsernamePasswordCredentials(userName, password));
+            restClientBuilder.setHttpClientConfigCallback(httpAsyncClientBuilder -> {
+                httpAsyncClientBuilder.disableAuthCaching();
+                return httpAsyncClientBuilder.setDefaultCredentialsProvider(credentialsProvider);
+            });
+        }
         restHighLevelClient = new RestHighLevelClient(restClientBuilder);
         this.restLowLevelClient = restHighLevelClient.getLowLevelClient();
         if (sniff) {
@@ -54,7 +83,7 @@ public class EsRestClientContainer {
         if (this.sniffer != null) {
             try {
                 this.sniffer.close();
-            } catch (IOException ex) {
+            } catch (Exception ex) {
                 LOGGER.error("error when close elasticsearch sniffer", ex);
             }
         }
@@ -79,9 +108,13 @@ public class EsRestClientContainer {
 
     public boolean checkIndexExists(String index) {
         try {
-            Response response = this.restLowLevelClient.performRequest("HEAD", index);
-            return response.getStatusLine().getStatusCode() == 200;
-        } catch (IOException ex) {
+            /*GetIndexRequest request = new GetIndexRequest(index);
+            request.local(false);
+            request.humanReadable(true);
+            request.includeDefaults(false);
+            return this.restHighLevelClient.indices().exists(request, RequestOptions.DEFAULT);*/
+            return true;
+        } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
     }
@@ -110,6 +143,16 @@ public class EsRestClientContainer {
             to = now;
         }
         List<String> indiceList = new ArrayList<>();
+        if (Strings.isNullOrEmpty(datePattern)) {
+            indiceList.add(prefix);
+            return indiceList.toArray(new String[0]);
+        }
+
+        if (datePattern.equals("*")) {
+            indiceList.add(prefix + "*");
+            return indiceList.toArray(new String[0]);
+        }
+
         DateTime cursor = DateTime.parse(from.minusDays(1).toString("yyyy-MM-dd"));
 
         while (cursor.getMillis() < to.getMillis()) {
@@ -118,7 +161,7 @@ public class EsRestClientContainer {
                 if (!indiceList.contains(index)) {
                     indiceList.add(index);
                 }
-            } else if (checkIndexOpenExists(index)) {
+            } else if (checkIndexExists(index)) {
                 if (!indiceList.contains(index)) {
                     indiceList.add(index);
                 }
@@ -126,6 +169,16 @@ public class EsRestClientContainer {
             cursor = cursor.minusDays(-1);
         }
         return indiceList.toArray(new String[0]);
+    }
+
+    public long totalCount(BoolQueryBuilder boolQueryBuilder, String[] indices) throws IOException {
+        CountRequest countRequest = new CountRequest(indices);
+        SearchSourceBuilder countSourceBuilder = new SearchSourceBuilder();
+        countSourceBuilder.query(boolQueryBuilder);
+        countRequest.source(countSourceBuilder);
+
+        CountResponse countResponse = this.fetchHighLevelClient().count(countRequest, RequestOptions.DEFAULT);
+        return countResponse.getCount();
     }
 
     private List<HttpHost> parseHttpHost(List<String> esHosts) {

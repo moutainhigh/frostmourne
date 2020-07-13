@@ -1,64 +1,52 @@
 {
-  "typescript.validate.enable": false,
-  "javascript.validate.enable": false,
-  "vetur.validation.script": false,
-  "emmet.syntaxProfiles": {
-    "vue-html": "html",
-    "vue": "html"
+  "editor.tabSize": 2,
+  "editor.formatOnSave": false,
+  "editor.mouseWheelZoom": true,
+  "editor.renderControlCharacters": true,
+  "editor.wordWrapColumn": 180,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
   },
   "eslint.validate": [
     "javascript",
-    "javascriptreact",
     "html",
-    {
-      "language": "vue",
-      "autoFix": true
-    }
+    "vue"
   ],
-  "beautify.language": {
-    "html": [
-      "htm",
-      "html",
-      // "vue"
-    ]
+  "[html]": {
+    "editor.defaultFormatter": "vscode.html-language-features"
   },
-  //保存自动格式化
-  "editor.formatOnSave": true, //设置成true会导致Windows平台下 vscode JS文件的函数注释重复缩进. 参考 issue: https://github.com/Microsoft/vscode-eslint/issues/380
+  "[jsonc]": {
+    "editor.defaultFormatter": "vscode.json-language-features"
+  },
   "[javascript]": {
-    "editor.formatOnSave": false
+    "editor.defaultFormatter": "vscode.typescript-language-features"
   },
-  //保存自动格式化
-  "eslint.autoFixOnSave": true,
+  "[vue]": {
+    "editor.defaultFormatter": "octref.vetur"
+  },
+  "html.format.extraLiners": "",
+  "html.format.endWithNewline": true,
+  "html.format.indentHandlebars": true,
+  "html.format.indentInnerHtml": true,
+  "html.format.wrapLineLength": 180,
+  "html.format.wrapAttributes": "auto",
   "vetur.format.defaultFormatter.js": "vscode-typescript",
   "vetur.format.defaultFormatter.html": "js-beautify-html",
   "vetur.format.defaultFormatterOptions": {
     "js-beautify-html": {
-      "wrap_attributes": "auto"
-    },
-    "prettyhtml": {
-      "printWidth": 100,
-      "singleQuote": false,
-      "wrapAttributes": false,
-      "sortAttributes": false
+      "wrap_line_length": 180,
+      "wrap_attributes": "auto",
+      "end_with_newline": false
     }
   },
-  "files.exclude": {
-    "**/.git": true,
-    "**/.svn": true,
-    "**/.hg": true,
-    "**/CVS": true,
-    "**/.DS_Store": true,
-    "node_modules": true
-  },
-  "files.watcherExclude": {
-    "**/.git/**": true,
-    "**/node_modules/**": true,
-    "dist/**": true,
-    "vendor/**": true
-  },
+  "javascript.format.insertSpaceBeforeFunctionParenthesis": true,
   "files.eol": "\n",
-  "editor.tabSize": 2,
-  "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": true
-  }
+  // prettier
+  "prettier.singleQuote": true,
+  "prettier.proseWrap": "never",
+  "prettier.printWidth": 180,
+  "prettier.semi": false,
+  "prettier.disableLanguages": [
+    "vue"
+  ]
 }

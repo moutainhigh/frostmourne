@@ -7,7 +7,7 @@ import { getToken } from '@/utils/auth'
 const service = axios.create({
   // baseURL: process.env.VUE_APP_BASE_API, // url = base url + request url
   withCredentials: true, // send cookies when cross-domain requests
-    timeout: 10000 // request timeout
+  timeout: 20000 // request timeout
 })
 
 // request interceptor
@@ -42,6 +42,11 @@ service.interceptors.response.use(
    * You can also judge the status by HTTP Status Code
    */
   response => {
+    const headers = response.headers
+    if (headers['content-type'] === 'application/octet-stream;charset=utf-8') {
+      return response
+    }
+
     const res = response.data
     if (res.returncode !== 0) {
       Message({

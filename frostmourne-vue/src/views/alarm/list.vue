@@ -37,7 +37,7 @@
     <div class="filter-container">
       <el-input v-model="form.alarmId" placeholder="输入id" clearable style="width: 150px;" class="filter-item" />
       <el-input v-model="form.name" clearable placeholder="输入名称,支持模糊查询" style="width: 300px;" class="filter-item" />
-      <el-select v-model="form.status" placeholder="报警状态" clearable class="filter-item" @change="onStatusChange">
+      <el-select v-model="form.status" placeholder="监控状态" clearable class="filter-item" @change="onStatusChange">
         <el-option v-for="item in alarmStatus" :key="item.value" :label="item.text" :value="item.value" />
       </el-select>
       <el-button class="filter-item" type="primary" icon="el-icon-search" @click="onSubmit">查询</el-button>
@@ -130,9 +130,9 @@ export default {
         pageSize: 20
       },
       alarmStatus: [
-        { value: "", text: '监控状态' },
-        { value: "OPEN", text: '开启' },
-        { value: "CLOSE", text: '关闭' }
+        { value: '', text: '监控状态' },
+        { value: 'OPEN', text: '开启' },
+        { value: 'CLOSE', text: '关闭' }
       ]
     }
   },
@@ -162,9 +162,9 @@ export default {
     changeStatus(alarm) {
       const message = `id=${alarm.id} 监控报警${alarm.status}成功！`
       if (alarm.status === 'OPEN') {
-        adminApi.open(alarm.id).then(response => this.$message({ type: 'success', message: message, duration: 1000 }))
+        adminApi.open(alarm.id).then(response => this.$message({ type: 'success', message: message, duration: 2000 }))
       } else {
-        adminApi.close(alarm.id).then(response => this.$message({ type: 'success', message: message, duration: 1000 }))
+        adminApi.close(alarm.id).then(response => this.$message({ type: 'success', message: message, duration: 2000 }))
       }
     },
     fetchData() {
@@ -187,9 +187,15 @@ export default {
       })
     },
     remove(id) {
-      adminApi.delete(id).then(response => {
-        this.$message({ type: 'success', message: '删除成功', duration: 1000 })
-        this.fetchData()
+      this.$confirm('此操作将删除监控, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        adminApi.delete(id).then(response => {
+          this.$message({ type: 'success', message: '删除成功', duration: 2000 })
+          this.fetchData()
+        })
       })
     }
   }
